@@ -1,13 +1,28 @@
-import React, { use } from 'react';
-import { restoreUser} from '../redux/userSlice'; // Import the User interface
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from "../redux/store"
+'use client';
 
+import React, { useEffect, useState } from 'react';
 
-const Deleted: React.FC = () => {
-    const users = useSelector((state: RootState) => state.user.deletedUsers);
-    console.log(users);
-    const dispatch: AppDispatch = useDispatch();
+const Deleted = () => {
+  const [users, setUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const deletedUsers = localStorage.getItem("deletedUsers");
+      if (deletedUsers) {
+        setUsers(JSON.parse(deletedUsers));
+      }
+    }
+  }, []);
+
+  const handleRestore = (item: any) => {
+    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
+
+    const updatedDeletedUsers = users.filter((i: any) => i.id !== item.id);
+    setUsers(updatedDeletedUsers);
+
+    localStorage.setItem("deletedUsers", JSON.stringify(updatedDeletedUsers));
+    localStorage.setItem("users", JSON.stringify([...storedUsers, item]));
+  };
 
     
   return (
@@ -28,7 +43,7 @@ const Deleted: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {users.map((user: any) => (
               <tr key={user.id} className="border-b hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-800">{user.name}</td>
                 <td className="px-6 py-4 text-sm text-gray-800">{user.email}</td>
@@ -41,7 +56,7 @@ const Deleted: React.FC = () => {
                   <div className="flex space-x-3">
                     
                     <button
-                      onClick={() => dispatch(restoreUser(user.id))}
+                      onClick={() => handleRestore(user)}
                    
                       className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
                     >

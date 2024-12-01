@@ -9,6 +9,7 @@ export interface User {
   dob: string;
   fatherName: string;
   interest: string;
+  file:string
 }
 
 interface UserState {
@@ -29,19 +30,27 @@ const userSlice = createSlice({
   reducers: {
     addUser: (state, action: PayloadAction<User>) => {
       state.users.push(action.payload);
+      state.users.sort((a, b) => a.name.localeCompare(b.name));
       if (typeof window !== "undefined") {
         localStorage.setItem("users", JSON.stringify(state.users));
       }
     },
     editUser: (state, action: PayloadAction<User>) => {
-      const index = state.users.findIndex((user) => user.id === action.payload.id);
-      if (index !== -1) {
-        state.users[index] = action.payload;
-        if (typeof window !== "undefined") {
-          localStorage.setItem("users", JSON.stringify(state.users));
-        }
+      try {
+          const index = state.users.findIndex((user) => user.id === action.payload.id);
+  
+          if (index !== -1) {
+              state.users[index] = { ...state.users[index], ...action.payload };
+              state.users.sort((a, b) => a.name.localeCompare(b.name));
+
+              if (typeof window !== "undefined") {
+                  localStorage.setItem("users", JSON.stringify(state.users));
+              }
+          }
+      } catch (error) {
+          console.error("Error updating user:", error);
       }
-    },
+  },
     deleteUser: (state, action: PayloadAction<string>) => {
       const userIndex = state.users.findIndex((user) => user.id === action.payload);
       if (userIndex !== -1) {
@@ -49,23 +58,12 @@ const userSlice = createSlice({
         state.deletedUsers.push(deletedUser);
         if (typeof window !== "undefined") {
           localStorage.setItem("users", JSON.stringify(state.users));
-          localStorage.setItem("deletedUsers", JSON.stringify(state.deletedUsers));
         }
       }
     },
-    restoreUser: (state, action: PayloadAction<string>) => {
-      const deletedUserIndex = state.deletedUsers.findIndex((user) => user.id === action.payload);
-      if (deletedUserIndex !== -1) {
-        const [restoredUser] = state.deletedUsers.splice(deletedUserIndex, 1);
-        state.users.push(restoredUser);
-        if (typeof window !== "undefined") {
-          localStorage.setItem("users", JSON.stringify(state.users));
-          localStorage.setItem("deletedUsers", JSON.stringify(state.deletedUsers));
-        }
-      }
-    },
+   
   },
 });
 
-export const { addUser, editUser, deleteUser, restoreUser } = userSlice.actions;
+export const { addUser, editUser, deleteUser } = userSlice.actions;
 export default userSlice.reducer;

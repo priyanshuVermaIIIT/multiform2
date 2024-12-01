@@ -1,22 +1,21 @@
-function imageToBase64(imageFile: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-  
-      // Triggered when the file is successfully read
-      reader.onload = () => {
-        if (reader.result) {
-          resolve(reader.result.toString()); // Base64 string
-        } else {
-          reject("Failed to convert image to Base64");
-        }
-      };
-  
-      // Triggered on error
-      reader.onerror = (error) => {
-        reject(error);
-      };
-  
-      // Start reading the file as a Data URL (Base64 string)
-      reader.readAsDataURL(imageFile);
-    });
-  }
+
+  export function calculateAge(dob:string) {
+    if (!dob) throw new Error("Date of birth is required");
+
+    const dobDate:any = new Date(dob);
+    const today = new Date();
+
+    if (isNaN(dobDate)) throw new Error("Invalid date format. Use 'YYYY-MM-DD'.");
+
+    let age = today.getFullYear() - dobDate.getFullYear();
+
+    const isBirthdayPassed =
+        today.getMonth() > dobDate.getMonth() ||
+        (today.getMonth() === dobDate.getMonth() && today.getDate() >= dobDate.getDate());
+
+    if (!isBirthdayPassed) {
+        age--;
+    }
+
+    return age;
+}

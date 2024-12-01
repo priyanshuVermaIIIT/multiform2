@@ -1,10 +1,9 @@
-//  This function is responsible for validating a single field of the form.
 
 import { FormState, UserFormArray } from "../redux/formSlice";
 
 export const validateSingleField = (
   field: keyof FormState,
-  value: string | any // Allow both string and File types
+  value: string | any 
 ): string => {
   switch (field) {
     case "name":
@@ -27,11 +26,15 @@ export const validateSingleField = (
         return "Please select a gender.";
       }
       return "";
-    case "dob":
-      if (!value) {
-        return "Date of birth is required.";
-      }
-      return "";
+      case "dob":
+        if (!value) {
+          return "Date of birth is required.";
+        }
+        const today = new Date().toISOString().split("T")[0]; 
+        if (value > today) {
+          return "Date of birth cannot be in the future.";
+        }
+        return "";
     case "fatherName":
       if (!value.trim()) {
         return "";
@@ -51,36 +54,27 @@ export const validateSingleField = (
       return "";
     case "file":
       if (value instanceof File) {
-        const maxSizeInBytes = 2 * 1024 * 1024; // 2 MB
+        const maxSizeInBytes = 2 * 1024 * 1024; 
         if (value.size > maxSizeInBytes) {
           return "File size must be less than 2 MB.";
         }
         return "";
       }
-      return "Invalid file input.";
+      
     default:
       return "";
   }
 };
 
 
-//   This function checks if the entire form array is valid.
 
-export const checkAllFromisValid = (arr: UserFormArray): boolean => {
-  // console.log("Validating the entire form array.");
-
+export const checkAllFromisValid = (arr: UserFormArray, isEdit:boolean): boolean => {
   const valid = arr.every((item: FormState) => {
     const { dob, email, fatherName, gender, interest, name, phone, error } =
       item;
-
-    //   Conditions for a Valid Form:
-    // All field values are non-empty (e.g., dob !== "").
-    // All error messages are empty strings (e.g., error.dob === "").
-
     if (
       dob !== "" &&
       email !== "" &&
-      // (fatherName === undefined) &&
       gender !== "" &&
       interest !== "" &&
       name !== "" &&
@@ -98,8 +92,6 @@ export const checkAllFromisValid = (arr: UserFormArray): boolean => {
       return false;
     }
   });
-
-  // If all forms are valid, !valid returns false (no validation issues).
-  //     If any form is invalid, !valid returns true (validation issues exist).
-  return !valid;
+console.log("validddddd", valid)
+  return isEdit ? false:!valid;
 };

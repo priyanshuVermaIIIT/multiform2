@@ -6,6 +6,7 @@ import { addUser, editUser, deleteUser } from "../redux/userSlice";
 import { RootState, AppDispatch } from "../redux/store";
 import Table from "./Table";
 import { checkAllFromisValid, validateSingleField } from "../utils/validations";
+import ConfirmationModal from "./Modal";
 
 const Form: React.FC = () => {
   const form = useSelector((state: RootState) => state.form);
@@ -16,33 +17,25 @@ const Form: React.FC = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({}); //key is field and value is error message
   const [userForms, setUserForms] = useState<FormState[]>([]);
   const [isEdit, setIsEdit] = useState<boolean>(false);
-  const [file, setFile] = useState<any>(null)
+  const [file, setFile] = useState<any>(null);
+  const [dltFormIndex, setDltFormIndex] = useState(0);
 
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [deleteFormIndex, setDeleteFormIndex ] = useState<number | null>(null);
+  const [formIndex, setFormIndex] = useState<number>(0);
 
- 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedUsers:any = localStorage.getItem("users");
+      const storedUsers: any = localStorage.getItem("users");
       const storedDeletedUsers = localStorage.getItem("deletedUsers");
 
-      if (storedUsers) {
+      if (storedUsers && users.length===0) {
         const usersFromLocalStorage = JSON.parse(storedUsers);
         usersFromLocalStorage.forEach((user: any) => {
           dispatch(addUser(user));
         });
       }
-      if (storedDeletedUsers) {
-        const usersFromLocalStorage :any = JSON.parse(storedUsers);
-        usersFromLocalStorage.forEach((user: any) => {
-          dispatch(deleteUser(user.id));
-        });
-      }
-
-      
     }
-  }, [dispatch]);
+  }, []);
   const handleInputChange = async (
     field: keyof FormState,
     value: string | File,
@@ -59,6 +52,7 @@ const Form: React.FC = () => {
           [field]: currentError,
         },
       };
+      console.log("value",typeof value)
       setUserForms(updatedForms);
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -74,33 +68,34 @@ const Form: React.FC = () => {
           }));
           return;
         }
-  
+
         const reader = new FileReader();
         reader.onload = () => {
           const base64String = reader.result as string;
-          const currentError = validateSingleField(field , base64String)
+          const currentError = validateSingleField(field, base64String);
           const updatedForms = [...userForms];
           updatedForms[formIndex] = {
             ...updatedForms[formIndex],
-            [field]: base64String,error:{
-              [field]:currentError
-            }
+            [field]: base64String,
+            error: {
+              [field]: currentError,
+            },
           };
-          console.log("updatedformIndex", updatedForms)
+          console.log("updatedformIndex", updatedForms);
           setUserForms(updatedForms);
           setErrors((prevErrors) => ({
             ...prevErrors,
             [field]: "",
           }));
         };
-  
+
         reader.onerror = () => {
           setErrors((prevErrors) => ({
             ...prevErrors,
             [field]: "Error reading the file. Please try again.",
           }));
         };
-  
+
         reader.readAsDataURL(value);
       } else {
         setErrors((prevErrors) => ({
@@ -111,13 +106,12 @@ const Form: React.FC = () => {
     }
   };
 
-  
   //save the edited user
   const handleSave = (): void => {
     // console.log("Starting handleSave...");
     const currentForm = userForms.find((item: any) => item.id === editId);
     // console.log(currentForm);
-    if (checkAllFromisValid(userForms)) {
+    if (checkAllFromisValid(userForms, true)) {
       // console.log("Validation failed. Stopping execution.");
       return;
     }
@@ -133,6 +127,7 @@ const Form: React.FC = () => {
           dob: currentForm?.dob || "",
           fatherName: currentForm?.fatherName || "",
           interest: currentForm?.interest || "",
+          file: currentForm?.file
         })
       );
       // console.log("Dispatched edit action for:", currentForm);
@@ -163,7 +158,7 @@ const Form: React.FC = () => {
       dob: "",
       fatherName: "",
       interest: "",
-      file:"",
+      file: "",
       error: {
         name: "",
         email: "",
@@ -172,9 +167,10 @@ const Form: React.FC = () => {
         dob: "",
         fatherName: "",
         interest: "",
-        file:""
+        file: "",
       },
     };
+    setFile(null)
     setUserForms([...userForms, updatedForm]);
   };
 
@@ -182,7 +178,7 @@ const Form: React.FC = () => {
   const handleSubmitAll = (): void => {
     // console.log("Starting submission process...");
     // console.log("Current forms:", userForms);
-    if (!checkAllFromisValid(userForms)) {
+    if (!checkAllFromisValid(userForms, false)) {
       // console.log("All forms are valid. Proceeding with submission...");
       userForms.forEach((formData: FormState) => {
         dispatch(addUser({ ...formData, id: Date.now().toString() }));
@@ -191,7 +187,10 @@ const Form: React.FC = () => {
       setUserForms([]);
     }
   };
-
+  useEffect(() => {
+    console.log("file", file);
+    handleInputChange("file", file, formIndex);
+  }, [file]);
   // for handling the editing of a specific user in the application
   const handleEditUser = (userId: string): void => {
     // console.log("Editing user with ID:", userId);
@@ -212,7 +211,7 @@ const Form: React.FC = () => {
         dob: userToEdit.dob,
         fatherName: userToEdit.fatherName,
         interest: userToEdit.interest,
-        file:"",
+        file: "",
         error: {
           name: "",
           email: "",
@@ -221,7 +220,7 @@ const Form: React.FC = () => {
           dob: "",
           fatherName: "",
           interest: "",
-          file:""
+          file: "",
         }, // Default empty errors
       };
 
@@ -233,11 +232,16 @@ const Form: React.FC = () => {
   const handleDeleteForm = (formIndex: number): void => {
     const updatedForms = userForms.filter((_, index) => index !== formIndex);
     setUserForms(updatedForms);
+    setShowModal(false)
   };
   const handleDeleteUser = (userId: string): void => {
+    const dltUser = users.find((item:any)=>item.id===userId)
     dispatch(deleteUser(userId));
-  };
+    const storedDltUsers = JSON.parse(localStorage.getItem("deletedUsers") || "[]")
+localStorage.setItem( "deletedUsers",JSON.stringify([...storedDltUsers, dltUser]))
 
+
+  };
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">User Form</h1>
@@ -292,14 +296,18 @@ const Form: React.FC = () => {
           </div>
           <div className="mb-2 relative">
             <label>Image:</label>
-            <input
-              type="file"
-              value={currentForm.file}
-              onChange={(e) =>
-                handleInputChange("file", e.target.files[0]||"", index)
-              }
-              className="border rounded px-2 py-1 w-full"
-            />
+            <label className="border rounded px-2 py-1 w-full flex items-center">
+    <span>{file ? file.name : "No file chosen"}</span>
+    <input
+      type="file"
+      onChange={(e) => {
+        const selectedFile = e.target.files && e.target.files[0];
+        setFile(selectedFile); // Update file in state
+        setFormIndex(index); // Update form index
+      }}
+      className="hidden" // Hide the file input field
+    />
+  </label>
             {currentForm.error && currentForm.error.file && (
               <span className="text-red-500">{currentForm.error.file}</span>
             )}
@@ -351,6 +359,7 @@ const Form: React.FC = () => {
               value={currentForm.dob}
               onChange={(e) => handleInputChange("dob", e.target.value, index)}
               className="border rounded px-2 py-1 w-full"
+              max={new Date().toISOString().split("T")[0]}
             />
             {currentForm.error && currentForm.error.dob && (
               <span className="text-red-500 ">{currentForm.error.dob}</span>
@@ -365,7 +374,7 @@ const Form: React.FC = () => {
                 handleInputChange("fatherName", e.target.value, index)
               }
               className="border rounded px-2 py-1 w-full"
-              rows={5} // Allows multi-line input
+              rows={5} 
             />
             {currentForm.error && currentForm.error.fatherName && (
               <span className="text-red-500">
@@ -397,7 +406,9 @@ const Form: React.FC = () => {
 
           <div className="flex  mt-4">
             <button
-              onClick={() => handleDeleteForm(index)}
+              onClick={() => {
+                setDltFormIndex(index), setShowModal(true);
+              }}
               className="bg-red-500 text-white px-4 py-2 rounded "
             >
               Delete Form
@@ -410,14 +421,14 @@ const Form: React.FC = () => {
         <button
           onClick={handleAddMultipleUsers}
           className="bg-green-500 text-white px-4 py-2 rounded"
-          disabled={checkAllFromisValid(userForms) || isEdit}
+          disabled={checkAllFromisValid(userForms,false) || isEdit}
         >
           Add User
         </button>
         <button
           onClick={isEdit ? handleSave : handleSubmitAll}
           className="bg-indigo-500 text-white px-4 py-2 rounded"
-          disabled={checkAllFromisValid(userForms)}
+          disabled={checkAllFromisValid(userForms, isEdit)}
         >
           {isEdit ? "Update User" : "Submit Users"}
         </button>
@@ -428,6 +439,15 @@ const Form: React.FC = () => {
         handleEditUser={handleEditUser}
         handleDeleteUser={handleDeleteUser}
         disabled={userForms.length > 0}
+      />
+      <ConfirmationModal
+        isOpen={showModal}
+        title={"Are you sure brother?"}
+        message={"Do you want to delete this form ?"}
+        confirmText={"Delete"}
+        cancelText={"Cancel"}
+        onConfirm={()=>{handleDeleteForm(dltFormIndex)}}
+        onCancel={()=>setShowModal(false)}
       />
     </div>
   );

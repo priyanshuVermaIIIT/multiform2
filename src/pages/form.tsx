@@ -5,7 +5,6 @@ import Form from "../components/Form";
 
 const FormPage = () => (
   <div>
-    <h1>Form Page</h1>
     <Form />
   </div>
 );
