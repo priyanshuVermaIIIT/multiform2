@@ -1,10 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
 const Deleted = () => {
   const [users, setUsers] = useState<any[]>([]);
-
+const router =  useRouter()
   useEffect(() => {
     if (typeof window !== "undefined") {
       const deletedUsers = localStorage.getItem("deletedUsers");
@@ -69,6 +70,13 @@ const Deleted = () => {
           </tbody>
         </table>
       </div>
+      <button
+          onClick={()=>{router.push("/form")}}
+          className="bg-indigo-500 text-white px-4 py-2 rounded mt-4"
+         
+        >
+        Show User
+        </button>
     </div>
   );
 };

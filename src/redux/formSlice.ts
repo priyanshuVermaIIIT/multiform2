@@ -37,7 +37,7 @@ const initialState: FormState = {
   fatherName: "",
   interest: "",
   file:"",
-  error: {dob:'', email:'' ,fatherName:"" ,gender:"", interest:"" , name:"" , phone:"" } 
+  error: {dob:'', email:'' ,fatherName:"" ,gender:"", interest:"" , name:"" , phone:"" ,file: "" } 
 };
 
 const formSlice = createSlice({

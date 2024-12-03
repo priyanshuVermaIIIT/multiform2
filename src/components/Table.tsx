@@ -18,12 +18,33 @@ const Table: React.FC<TableProps> = ({ users, handleEditUser, handleDeleteUser, 
   const [image, setImage] = useState('');
   const [dltUserId, setDltUserId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 5;
 
-  const filteredUsers = users.filter((user) =>
+  // Sorting state
+  const [isAscending, setIsAscending] = useState(true);
+
+  // Handle sorting
+  const sortedUsers = [...users].sort((a, b) => {
+    if (a.name.toLowerCase() < b.name.toLowerCase()) return isAscending ? -1 : 1;
+    if (a.name.toLowerCase() > b.name.toLowerCase()) return isAscending ? 1 : -1;
+    return 0;
+  });
+
+  const filteredUsers = sortedUsers.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.phone.includes(searchQuery)
   );
+
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
   return (
     <div className="mt-4">
@@ -43,20 +64,31 @@ const Table: React.FC<TableProps> = ({ users, handleEditUser, handleDeleteUser, 
         <table className="min-w-full table-auto border-collapse bg-white rounded-lg shadow-md">
           <thead>
             <tr className="bg-gray-100">
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Name</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                <div className="flex items-center">
+                  <span>Name</span>
+                  <input
+                    type="checkbox"
+                    className="ml-2"
+                    checked={!isAscending}
+                    onChange={() => setIsAscending(!isAscending)}
+                    title="Toggle Sorting"
+                  />
+                </div>
+              </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Email</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">DOB</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Age</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Gender</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Phone</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Interest</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Father's Name</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Summary</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Image</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
+            {currentUsers.map((user) => (
               <tr key={user.id} className="border-b hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-800">{user.name}</td>
                 <td className="px-6 py-4 text-sm text-gray-800">{user.email}</td>
@@ -100,6 +132,27 @@ const Table: React.FC<TableProps> = ({ users, handleEditUser, handleDeleteUser, 
           </tbody>
         </table>
       </div>
+
+      <div className="flex justify-center space-x-2 mt-4">
+        <button
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 text-gray-600 rounded-lg hover:bg-gray-400 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2 text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => paginate(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 bg-gray-300 text-gray-600 rounded-lg hover:bg-gray-400 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
       <ImagePreviewModal imageSrc={image} isOpen={showImgModal} onClose={() => { setShowImgModal(false); }} />
       <ConfirmationModal
         isOpen={showModal}
