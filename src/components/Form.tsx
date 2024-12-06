@@ -59,10 +59,7 @@ const Form: React.FC = () => {
       };
       console.log("value", typeof value);
       setUserForms(updatedForms);
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [field]: currentError,
-      }));
+    
     } else {
       if (value instanceof File) {
         const maxSizeInBytes = 2 * 1024 * 1024;
@@ -79,7 +76,6 @@ const Form: React.FC = () => {
           const base64String = reader.result as string;
           const currentError = validateSingleField(field, base64String);
           const updatedForms = [...userForms];
-          console.log("base64", base64String);
           updatedForms[formIndex] = {
             ...updatedForms[formIndex],
             [field]: base64String,
@@ -89,25 +85,16 @@ const Form: React.FC = () => {
           };
           console.log("updatedformIndex", updatedForms);
           setUserForms(updatedForms);
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            [field]: "",
-          }));
+        
         };
 
         reader.onerror = () => {
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            [field]: "Error reading the file. Please try again.",
-          }));
+       
         };
 
         reader.readAsDataURL(value);
       } else {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          [field]: "Invalid file input.",
-        }));
+      
       }
     }
   };
@@ -115,7 +102,7 @@ const Form: React.FC = () => {
   //save the edited user
   const handleSave = (): void => {
     // console.log("Starting handleSave...");
-    const currentForm = userForms.find((item: any) => item.id === editId);
+    const currentForm = userForms.find((item: User) => item.id === editId);
     // console.log(currentForm);
     if (checkAllFromisValid(userForms, true)) {
       // console.log("Validation failed. Stopping execution.");
@@ -193,10 +180,13 @@ const Form: React.FC = () => {
       setUserForms([]);
     }
   };
-  useEffect(() => {
-    console.log("file", file.length);
-    handleInputChange("file", file, formIndex);
-  }, [file]);
+  // useEffect(() => {
+  //   console.log("file", formIndex);
+   
+  //   handleInputChange("file", file, formIndex);
+  // }, [file]);
+
+
   // for handling the editing of a specific user in the application
   const handleEditUser = (userId: string): void => {
     // console.log("Editing user with ID:", userId);
@@ -242,7 +232,7 @@ const Form: React.FC = () => {
     setShowModal(false);
   };
   const handleDeleteUser = (userId: string): void => {
-    const dltUser = users.find((item: any) => item.id === userId);
+    const dltUser = users.find((item: User) => item.id === userId);
     dispatch(deleteUser(userId));
     const storedDltUsers = JSON.parse(
       localStorage.getItem("deletedUsers") || "[]"
@@ -253,7 +243,7 @@ const Form: React.FC = () => {
     );
   };
   return (
-    <div className="p-4">
+    <div className="p-4 ">
       <h1 className="text-xl font-bold mb-4">User Form</h1>
 
       {userForms.map((currentForm, index) => (
@@ -263,7 +253,7 @@ const Form: React.FC = () => {
           </h2>
 
           <div className="mb-2 relative">
-            <label>Name:</label>
+            <label>Name <span className="text-red-500">*</span></label>
             <input
             placeholder="Enter your name here"
               type="text"
@@ -271,7 +261,7 @@ const Form: React.FC = () => {
               onChange={(e) => {
                 let input = e.target.value;
 
-                // Remove multiple consecutive spaces
+                
                 input = input.replace(/\s{2,}/g, " ");
 
                 // Allow only alphabets and single spaces
@@ -287,7 +277,7 @@ const Form: React.FC = () => {
           </div>
 
           <div className="mb-2 relative">
-            <label>Email:</label>
+            <label>Email <span className="text-red-500">*</span> </label>
             <input
             placeholder="Enter your email here"
               type="email"
@@ -308,7 +298,7 @@ const Form: React.FC = () => {
           </div>
 
           <div className="mb-2 relative">
-            <label>Phone:</label>
+            <label>Phone <span className="text-red-500">*</span></label>
             <input
             placeholder="Enter your Phone no. here"
               type="text"
@@ -329,7 +319,7 @@ const Form: React.FC = () => {
           </div>
 
           <div className="mb-2 relative">
-            <label>Gender:</label>
+            <label>Gender <span className="text-red-500">*</span></label>
             <div className="flex items-center gap-4">
               <label className="flex items-center">
                 <input
@@ -368,7 +358,7 @@ const Form: React.FC = () => {
           </div>
           <div className="flex justify-between gap-3 mt-4">
           <div className="mb-2 relative">
-  <label>Date of Birth:</label>
+  <label>Date of Birth <span className="text-red-500">*</span></label>
   <input
     type="date"
     value={currentForm.dob}
@@ -382,17 +372,19 @@ const Form: React.FC = () => {
   )}
 
 <div className="mb-2 mt-4 relative w-[400px] ">
-              <label>Image:</label>
-              {file==="" ? (
+              <label>Image </label>
+              {currentForm.file==='' ? (
                 <label className="border border-gray-300 rounded-lg px-4 py-2 w-full flex items-center justify-between cursor-pointer hover:bg-gray-50">
                   <span>No file chosen</span>{" "}
+                  <span className="text-[8px] text-red-500">File should be less than 2 mb and File type should be Jpg/Img</span>
                   <input
                     type="file"
                     onChange={(e) => {
+                      
                       const selectedFile:any = e.target.files && e.target.files[0];
 
                       setFile(selectedFile); // Update file in state
-                      setFormIndex(index); // Update form index
+                      handleInputChange('file', selectedFile, index) // Update form index
                     }}
                     className="hidden" // Hide the file input field
                   />{" "}
@@ -401,7 +393,16 @@ const Form: React.FC = () => {
                 <div className=" relative w-[350px] h-[130px]">
                   <div
                     className="w-4 h-4 absolute right-0 top-0"
-                    onClick={() =>{  setFormIndex(index);setFile("")}}
+                    onClick={() =>{  
+                      const updatedForms = [...userForms];
+                      updatedForms[index] = {
+                        ...updatedForms[index],
+                        file: "",
+                        error: {  ...updatedForms[index].error,
+                          file: "",
+                        },
+                      };
+                    setUserForms([...updatedForms]) }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -434,7 +435,7 @@ const Form: React.FC = () => {
 
           
             <div className="mb-2 relative w-3/4">
-              <label>Summary:</label>
+              <label>Summary</label>
               <textarea
               placeholder="Tell us about yourself in atleast 150 words"
                 value={currentForm.fatherName}
@@ -454,7 +455,7 @@ const Form: React.FC = () => {
           </div>
 
           <div className="mb-2 relative">
-            <label>Interest:</label>
+            <label>Interest <span className="text-red-500">*</span></label>
             <select
               value={currentForm.interest}
               onChange={(e) =>
@@ -498,7 +499,7 @@ const Form: React.FC = () => {
         <button
           onClick={isEdit ? handleSave : handleSubmitAll}
           className="bg-indigo-500 text-white px-4 py-2 rounded"
-          disabled={checkAllFromisValid(userForms, isEdit)}
+          disabled={userForms.length===0?true:checkAllFromisValid(userForms, isEdit)}
         >
           {isEdit ? "Update User" : "Submit Users"}
         </button>
@@ -513,9 +514,9 @@ const Form: React.FC = () => {
 
       <ConfirmationModal
         isOpen={showModal}
-        title={"Are you sure brother?"}
-        message={"Do you want to delete this form ?"}
-        confirmText={"Delete"}
+        title={"Discard changes ?"}
+        message={"Are you sure you want to go back?"}
+        confirmText={"Yes , Confrim"}
         cancelText={"Cancel"}
         onConfirm={() => {
           handleDeleteForm(dltFormIndex);

@@ -65,16 +65,43 @@ const Table: React.FC<TableProps> = ({ users, handleEditUser, handleDeleteUser, 
           <thead>
             <tr className="bg-gray-100">
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                <div className="flex items-center">
-                  <span>Name</span>
-                  <input
-                    type="checkbox"
-                    className="ml-2"
-                    checked={!isAscending}
-                    onChange={() => setIsAscending(!isAscending)}
-                    title="Toggle Sorting"
-                  />
-                </div>
+              <div className="flex items-center">
+  <span className="mr-2">Name</span>
+  <button
+    className="flex items-center justify-center"
+    onClick={() => setIsAscending(!isAscending)} 
+    title="Toggle Sorting"
+  >
+    {isAscending ? (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 text-gray-500"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M10 3a1 1 0 01.832.445l4 5a1 1 0 11-1.664 1.11L10 5.32 6.832 9.555a1 1 0 01-1.664-1.11l4-5A1 1 0 0110 3z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ) : (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 text-gray-500"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M10 17a1 1 0 01-.832-.445l-4-5a1 1 0 111.664-1.11L10 14.68l3.168-4.235a1 1 0 111.664 1.11l-4 5A1 1 0 0110 17z"
+          clipRule="evenodd"
+        />
+      </svg>
+    )}
+  </button>
+</div>
+
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Email</th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">DOB</th>

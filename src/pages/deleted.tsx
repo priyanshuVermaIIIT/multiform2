@@ -1,10 +1,11 @@
 'use client';
 
+import { User } from '@/redux/userSlice';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
 const Deleted = () => {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 const router =  useRouter()
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -15,10 +16,10 @@ const router =  useRouter()
     }
   }, []);
 
-  const handleRestore = (item: any) => {
+  const handleRestore = (item: User) => {
     const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
 
-    const updatedDeletedUsers = users.filter((i: any) => i.id !== item.id);
+    const updatedDeletedUsers = users.filter((i: User) => i.id !== item.id);
     setUsers(updatedDeletedUsers);
 
     localStorage.setItem("deletedUsers", JSON.stringify(updatedDeletedUsers));

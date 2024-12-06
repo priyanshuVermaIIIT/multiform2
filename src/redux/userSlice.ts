@@ -17,8 +17,6 @@ interface UserState {
   deletedUsers: User[];
 }
 
-
-
 const initialState: UserState = {
   users: [],
   deletedUsers: [],

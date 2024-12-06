@@ -5,10 +5,8 @@ export const validateSingleField = (
   field: keyof FormState,
   value: string | any 
 ): string => {
-  console.log("helllowowowowowo", value)
-  if(value===""){
-    return "This Field is Required"
-  }
+  
+  
   switch (field) {
     case "name":
      
@@ -43,8 +41,8 @@ export const validateSingleField = (
           return "Date of birth is required.";
         }
       
-        const today = new Date().toISOString().split("T")[0]; // Today's date
-        const minDate = "1980-01-01"; // Minimum allowed date
+        const today = new Date().toISOString().split("T")[0];
+        const minDate = "1980-01-01"; 
       
         if (value > today) {
           return "Date of birth cannot be in the future.";
@@ -72,14 +70,21 @@ export const validateSingleField = (
         return "Please select an interest.";
       }
       return "";
-    case "file":
-      if (value instanceof File) {
-        const maxSizeInBytes = 2 * 1024 * 1024; 
-        if (value.size > maxSizeInBytes) {
-          return "File size must be less than 2 MB.";
-        }
-        return "";
-      }
+   case "file":
+  if (value instanceof File) {
+    const maxSizeInBytes = 2 * 1024 * 1024; // 2 MB
+    const allowedTypes = ["image/jpeg", "image/png"]; 
+
+    if (value.size > maxSizeInBytes) {
+      return "File size must be less than 2 MB.";
+    }
+    if (!allowedTypes.includes(value.type)) {
+      return "Only JPG and PNG file types are allowed.";
+    }
+
+    return ""; // Valid file
+  }
+  return "";
       
     default:
       return "";
@@ -110,7 +115,7 @@ export const checkAllFromisValid = (arr: UserFormArray, isEdit:boolean): boolean
     )
     return true;
     else {
-      console.log("this arr" , arr)
+     
       return false;
     }
   });
