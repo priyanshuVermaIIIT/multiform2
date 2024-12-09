@@ -14,7 +14,7 @@ const router =  useRouter()
         setUsers(JSON.parse(deletedUsers));
       }
     }
-  }, []);
+  }, []); 
 
   const handleRestore = (item: User) => {
     const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");

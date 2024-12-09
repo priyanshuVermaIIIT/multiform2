@@ -1,42 +1,51 @@
-'use client';
-import React, { useState } from 'react';
-import { User } from '../redux/userSlice'; 
-import ConfirmationModal from './Modal';
-import { calculateAge } from '@/utils/helper';
-import ImagePreviewModal from './ImagePreview';
+"use client";
+import React, { useState } from "react";
+import { User } from "../redux/userSlice";
+import ConfirmationModal from "./Modal";
+import { calculateAge } from "@/utils/helper";
+import ImagePreviewModal from "./ImagePreview";
+import router from "next/router";
 
 interface TableProps {
-  users: User[]; 
+  users: User[];
   handleEditUser: (userId: string) => void;
   handleDeleteUser: (userId: string) => void;
-  disabled: boolean; 
+  disabled: boolean;
 }
 
-const Table: React.FC<TableProps> = ({ users, handleEditUser, handleDeleteUser, disabled }) => {
+const Table: React.FC<TableProps> = ({
+  users,
+  handleEditUser,
+  handleDeleteUser,
+  disabled,
+}) => {
   const [showModal, setShowModal] = useState(false);
   const [showImgModal, setShowImgModal] = useState(false);
-  const [image, setImage] = useState('');
-  const [dltUserId, setDltUserId] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  
+  const [image, setImage] = useState("");
+  const [dltUserId, setDltUserId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
+  const usersPerPage = 2;
 
   // Sorting state
   const [isAscending, setIsAscending] = useState(true);
 
   // Handle sorting
   const sortedUsers = [...users].sort((a, b) => {
-    if (a.name.toLowerCase() < b.name.toLowerCase()) return isAscending ? -1 : 1;
-    if (a.name.toLowerCase() > b.name.toLowerCase()) return isAscending ? 1 : -1;
+    if (a.name.toLowerCase() < b.name.toLowerCase())
+      return isAscending ? -1 : 1;
+    if (a.name.toLowerCase() > b.name.toLowerCase())
+      return isAscending ? 1 : -1;
     return 0;
   });
 
-  const filteredUsers = sortedUsers.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.phone.includes(searchQuery)
+  const filteredUsers = sortedUsers.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.phone.includes(searchQuery)
   );
 
   const indexOfLastUser = currentPage * usersPerPage;
@@ -65,70 +74,102 @@ const Table: React.FC<TableProps> = ({ users, handleEditUser, handleDeleteUser, 
           <thead>
             <tr className="bg-gray-100">
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-              <div className="flex items-center">
-  <span className="mr-2">Name</span>
-  <button
-    className="flex items-center justify-center"
-    onClick={() => setIsAscending(!isAscending)} 
-    title="Toggle Sorting"
-  >
-    {isAscending ? (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5 text-gray-500"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fillRule="evenodd"
-          d="M10 3a1 1 0 01.832.445l4 5a1 1 0 11-1.664 1.11L10 5.32 6.832 9.555a1 1 0 01-1.664-1.11l4-5A1 1 0 0110 3z"
-          clipRule="evenodd"
-        />
-      </svg>
-    ) : (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-5 w-5 text-gray-500"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-      >
-        <path
-          fillRule="evenodd"
-          d="M10 17a1 1 0 01-.832-.445l-4-5a1 1 0 111.664-1.11L10 14.68l3.168-4.235a1 1 0 111.664 1.11l-4 5A1 1 0 0110 17z"
-          clipRule="evenodd"
-        />
-      </svg>
-    )}
-  </button>
-</div>
-
+                <div className="flex items-center">
+                  <span className="mr-2">Name</span>
+                  <button
+                    className="flex items-center justify-center"
+                    onClick={() => setIsAscending(!isAscending)}
+                    title="Toggle Sorting"
+                  >
+                    {isAscending ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 3a1 1 0 01.832.445l4 5a1 1 0 11-1.664 1.11L10 5.32 6.832 9.555a1 1 0 01-1.664-1.11l4-5A1 1 0 0110 3z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 17a1 1 0 01-.832-.445l-4-5a1 1 0 111.664-1.11L10 14.68l3.168-4.235a1 1 0 111.664 1.11l-4 5A1 1 0 0110 17z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Email</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">DOB</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Age</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Gender</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Phone</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Interest</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Summary</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Image</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Email
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                DOB
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Age
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Gender
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Phone
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Interest
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Summary
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Image
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {currentUsers.map((user) => (
               <tr key={user.id} className="border-b hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-800">{user.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-800">{user.email}</td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {user.email}
+                </td>
                 <td className="px-6 py-4 text-sm text-gray-800">{user.dob}</td>
-                <td className="px-6 py-4 text-sm text-gray-800">{calculateAge(user.dob)}</td>
-                <td className="px-6 py-4 text-sm text-gray-800">{user.gender}</td>
-                <td className="px-6 py-4 text-sm text-gray-800">{user.phone}</td>
-                <td className="px-6 py-4 text-sm text-gray-800">{user.interest}</td>
-                <td className="px-6 py-4 text-sm text-gray-800">{user.fatherName}</td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {calculateAge(user.dob)}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {user.gender}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {user.phone}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {user.interest}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-800">
+                  {user.fatherName}
+                </td>
                 <td className="px-6 py-4 text-sm text-gray-800">
                   <div className="flex space-x-3">
                     <button
-                      onClick={() => { setShowImgModal(true); setImage(user.file); }}
+                      onClick={() => {
+                        setShowImgModal(true);
+                        setImage(user.file);
+                      }}
                       disabled={disabled}
                       className="px-4 py-2 text-black rounded-lg transition duration-200"
                     >
@@ -146,11 +187,21 @@ const Table: React.FC<TableProps> = ({ users, handleEditUser, handleDeleteUser, 
                       Edit
                     </button>
                     <button
-                      onClick={() => { setDltUserId(user.id); setShowModal(true); }}
+                      onClick={() => {
+                        setDltUserId(user.id);
+                        setShowModal(true);
+                      }}
                       disabled={disabled}
                       className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
                     >
                       Delete
+                    </button>
+                    <button
+                      onClick={() => router.push(`/users/${user.id}`)}
+                      disabled={disabled}
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
+                    >
+                      View
                     </button>
                   </div>
                 </td>
@@ -180,14 +231,23 @@ const Table: React.FC<TableProps> = ({ users, handleEditUser, handleDeleteUser, 
         </button>
       </div>
 
-      <ImagePreviewModal imageSrc={image} isOpen={showImgModal} onClose={() => { setShowImgModal(false); }} />
+      <ImagePreviewModal
+        imageSrc={image}
+        isOpen={showImgModal}
+        onClose={() => {
+          setShowImgModal(false);
+        }}
+      />
       <ConfirmationModal
         isOpen={showModal}
         title={"Are you sure brother?"}
         message={"Do you want to delete this User?"}
         confirmText={"Delete"}
         cancelText={"Cancel"}
-        onConfirm={() => { handleDeleteUser(dltUserId); setShowModal(false); }}
+        onConfirm={() => {
+          handleDeleteUser(dltUserId);
+          setShowModal(false);
+        }}
         onCancel={() => setShowModal(false)}
       />
     </div>

@@ -27,12 +27,16 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     addUser: (state, action: PayloadAction<User>) => {
-      state.users.push(action.payload);
-      state.users.sort((a, b) => a.name.localeCompare(b.name));
+      const existingUser = state.users.find((user) => user.id === action.payload.id);
+  if (!existingUser) {
+    // Add user only if it doesn't already exist
+    state.users.push(action.payload);
+    state.users.sort((a, b) => a.name.localeCompare(b.name));
       if (typeof window !== "undefined") {
         localStorage.setItem("users", JSON.stringify(state.users));
       }
-    },
+    }
+  },
     editUser: (state, action: PayloadAction<User>) => {
       try {
           const index = state.users.findIndex((user) => user.id === action.payload.id);

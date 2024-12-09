@@ -26,19 +26,7 @@ const Form: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [formIndex, setFormIndex] = useState<number>(0);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUsers: any = localStorage.getItem("users");
-      const storedDeletedUsers = localStorage.getItem("deletedUsers");
-
-      if (storedUsers && users.length === 0) {
-        const usersFromLocalStorage = JSON.parse(storedUsers);
-        usersFromLocalStorage.forEach((user: User) => {
-          dispatch(addUser(user));
-        });
-      }
-    }
-  }, []);
+  
 
   const handleInputChange = async (
     field: keyof FormState,
@@ -242,6 +230,20 @@ const Form: React.FC = () => {
       JSON.stringify([...storedDltUsers, dltUser])
     );
   };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUsers: any = localStorage.getItem("users");
+      const storedDeletedUsers = localStorage.getItem("deletedUsers");
+
+      if (storedUsers && users.length === 0) {
+        const usersFromLocalStorage = JSON.parse(storedUsers);
+        usersFromLocalStorage.forEach((user: User) => {
+          dispatch(addUser(user));
+        });
+      }
+    }
+  }, []);
   return (
     <div className="p-4 ">
       <h1 className="text-xl font-bold mb-4">User Form</h1>
