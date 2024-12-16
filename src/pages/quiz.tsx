@@ -8,7 +8,10 @@ const QuizPage: React.FC = () => {
   const [inputValue, setInputValue] = useState<number>(5);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  const [mandatory, setMandatory] = useState<string>("mandatory"); 
+  const [mandatory, setMandatory] = useState<string>("mandatory");
+  const [category, setCategory] = useState<string>("any");
+  const [difficulty, setDifficulty] = useState<string>("any");
+  const [type, setType] = useState<string>("any");
 
   const dispatch = useDispatch();
   const questions = useSelector((state: RootState) => state.quiz.questions);
@@ -17,12 +20,15 @@ const QuizPage: React.FC = () => {
   );
   const score = useSelector((state: RootState) => state.quiz.score);
 
-  
   const fetchQuestions = async (amount: number) => {
     try {
-      const response = await axios.get(
-        `https://opentdb.com/api.php?amount=${amount}`
-      );
+      
+      let apiUrl = `https://opentdb.com/api.php?amount=${amount}`;
+      if (category !== "any") apiUrl += `&category=${category}`;
+      if (difficulty !== "any") apiUrl += `&difficulty=${difficulty}`;
+      if (type !== "any") apiUrl += `&type=${type}`;
+
+      const response = await axios.get(apiUrl);
       const formattedQuestions = response.data.results.map((q: any) => ({
         question: q.question,
         options: [...q.incorrect_answers, q.correct_answer].sort(
@@ -38,7 +44,6 @@ const QuizPage: React.FC = () => {
     }
   };
 
-  // Timer functionality
   useEffect(() => {
     if (timeRemaining > 0 && !isSubmitted) {
       const timer = setInterval(() => {
@@ -50,35 +55,26 @@ const QuizPage: React.FC = () => {
     }
   }, [timeRemaining, isSubmitted]);
 
-  
   const handleSubmit = () => {
     dispatch(calculateScore());
     setIsSubmitted(true);
   };
 
-  
   const areAllQuestionsAnswered = questions.every(
     (_, index) => selectedAnswers[index] !== null && selectedAnswers[index] !== ""
   );
 
-  
-//   useEffect(() => {
-//     console.log("Selected Answers:", selectedAnswers);
-//   }, [selectedAnswers]);
-
-  
   const isSubmitDisabled =
     mandatory === "mandatory" && !areAllQuestionsAnswered;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 py-10 px-5">
       <h1 className="text-8xl font-bold text-blue-600 mb-2">Welcome to the Quiz</h1>
-      <p className="text-2xl font-serif text-blue-950 mb-20">
+      <p className="text-2xl font-serif text-blue-950 mb-10">
         Enter the no. of questions you want to answer
       </p>
 
-     
-      <div className="flex items-center space-x-3 mb-5">
+      <div className="flex flex-wrap items-center space-x-3 mb-5">
         <select
           disabled={!isSubmitted}
           value={mandatory}
@@ -88,6 +84,7 @@ const QuizPage: React.FC = () => {
           <option value="mandatory">Mandatory</option>
           <option value="non-mandatory">Non-Mandatory</option>
         </select>
+
         <input
           disabled={!isSubmitted}
           type="number"
@@ -102,6 +99,7 @@ const QuizPage: React.FC = () => {
           }}
           className="border border-gray-300 p-2 rounded-md w-20 text-center"
         />
+
         <button
           onClick={() => fetchQuestions(inputValue)}
           className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
@@ -111,7 +109,46 @@ const QuizPage: React.FC = () => {
         </button>
       </div>
 
-     
+      
+      <div className="flex flex-wrap items-center space-x-3 mb-5">
+        <select
+          disabled={!isSubmitted}
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="border border-gray-300 p-2 rounded-md"
+        >
+          <option value="any">All Categories</option>
+          <option value="9">General Knowledge</option>
+          <option value="21">Sports</option>
+          <option value="23">History</option>
+          
+        </select>
+
+        <select
+          disabled={!isSubmitted}
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
+          className="border border-gray-300 p-2 rounded-md"
+        >
+          <option value="any">All Difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+
+        <select
+          disabled={!isSubmitted}
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+          className="border border-gray-300 p-2 rounded-md"
+        >
+          <option value="any">All Types</option>
+          <option value="multiple">Multiple Choice</option>
+          <option value="boolean">True/False</option>
+        </select>
+      </div>
+
+      
       {timeRemaining > 0 && !isSubmitted && (
         <div className="mb-5 text-lg text-red-500">
           Time Remaining: {Math.floor(timeRemaining / 60)}:
@@ -121,7 +158,6 @@ const QuizPage: React.FC = () => {
         </div>
       )}
 
-      
       {questions.length > 0 && (
         <div className="w-full max-w-4xl">
           {questions.map((q, index) => (
@@ -167,12 +203,11 @@ const QuizPage: React.FC = () => {
         </div>
       )}
 
-      
       {questions.length > 0 && (
         <div className="mt-5">
           <button
             onClick={handleSubmit}
-            disabled={isSubmitted || isSubmitDisabled} 
+            disabled={isSubmitted || isSubmitDisabled}
             className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition disabled:bg-gray-400"
           >
             {isSubmitted ? "Submitted" : "Submit"}
@@ -180,7 +215,6 @@ const QuizPage: React.FC = () => {
         </div>
       )}
 
-    
       {isSubmitted && (
         <div className="mt-5 p-4 bg-white rounded-md shadow-md w-full max-w-4xl">
           <h2 className="text-2xl font-bold text-blue-600 mb-3">Result</h2>
