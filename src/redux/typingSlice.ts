@@ -1,45 +1,66 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface TypingState {
-  text: string;
-  userInput: string;
-  startTime: number | null;
-  endTime: number | null;
-  errors: number;
+interface TypingTestState {
+  paragraph: string;
+  typedText: string;
+  timer: number;
+  wpm: number;
+  accuracy: number;
+  isTestStarted: boolean;
+  isTestCompleted: boolean;
 }
 
-const initialState: TypingState = {
-  text: "This is a sample typing test paragraph.",
-  userInput: "",
-  startTime: null,
-  endTime: null,
-  errors: 0,
+const initialState: TypingTestState = {
+  paragraph: '',
+  typedText: '',
+  timer: 0,
+  wpm: 0,
+  accuracy: 0,
+  isTestStarted: false,
+  isTestCompleted: false,
 };
 
 const typingSlice = createSlice({
-  name: "typing",
+  name: 'typingTest',
   initialState,
   reducers: {
-    setUserInput: (state, action: PayloadAction<string>) => {
-      state.userInput = action.payload;
-
-      // Count errors
-      state.errors = state.text
-        .substring(0, action.payload.length)
-        .split("")
-        .filter((char, i) => char !== action.payload[i]).length;
+    startTest(state, action: PayloadAction<string>) {
+      state.paragraph = action.payload;
+      state.typedText = '';
+      state.timer = 0;
+      state.wpm = 0;
+      state.accuracy = 0;
+      state.isTestStarted = true;
+      state.isTestCompleted = false;
     },
-    startTest: (state) => {
-      state.startTime = Date.now();
-      state.endTime = null;
-      state.userInput = "";
-      state.errors = 0;
+    updateTypedText(state, action: PayloadAction<string>) {
+      state.typedText = action.payload;
     },
-    endTest: (state) => {
-      state.endTime = Date.now();
+    setTimer(state, action: PayloadAction<number>) {
+      state.timer = action.payload;
+    },
+    calculateWPM(state) {
+      const words = state.typedText.split(' ').length;
+      const minutes = state.timer / 60;
+      state.wpm = Math.round(words / minutes);
+    },
+    calculateAccuracy(state) {
+      const correctChars = state.typedText.split('').filter((char, idx) => char === state.paragraph[idx]).length;
+      state.accuracy = Math.round((correctChars / state.paragraph.length) * 100);
+    },
+    completeTest(state) {
+      state.isTestCompleted = true;
+    },
+    resetTest(state) {
+      state.isTestStarted = false;
+      state.isTestCompleted = false;
+      state.typedText = '';
+      state.timer = 0;
+      state.wpm = 0;
+      state.accuracy = 0;
     },
   },
 });
 
-export const { setUserInput, startTest, endTest } = typingSlice.actions;
+export const { startTest, updateTypedText, setTimer, calculateWPM, calculateAccuracy, completeTest, resetTest } = typingSlice.actions;
 export default typingSlice.reducer;
